@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <title>Restaurant List</title>
+
+    <!-- Bootstrap -->
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel='stylesheet'>
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+
+  <div class="container">
+    <div class="jumbotron">
+    <h1>{{ restaurant.name }}</h1>
+        </div>
+  </div>
+
+  <div class="container">
+    <h3>Menu List</h3>
+      {% if not menu %}
+          <ul class="list-group">
+              <li class="list-group-item list-group-item-info">
+                  No menu items present.
+              </li>
+          </ul>
+      {% else %}
+          {% for m in menu %}
+              <div class="row">
+                  <div class="col-md-6">{{ m.name }}
+                      <button class="edit-button fa fa-pencil-square-o btn btn-default" data-menu-id="{{ m.id }}"
+                              data-restaurant-id="{{ restaurant.id }}" ></button>
+                      <a class="delete-button glyphicon glyphicon-trash btn btn-default"
+                              href="{{ url_for('delete_menu_item', restaurant_id=restaurant.id, menu_id=m.id) }}" >
+                      </a>
+                  </div>
+          </div>
+          {% endfor %}
+      {% endif %}
+      <div class="row">
+          <br>
+          <div class="col-md-3">
+              <button id="add-new-item"><span class="glyphicon glyphicon-plus-sign"
+                                              data-restaurant-id="{{ restaurant.id }}"></span>
+                  Add new item
+              </button>
+          </div>
+      </div>
+      <div class="row">
+          <div class="col-md-12 text-center">
+              <a class="h5 btn btn-default" href="{{ url_for('home')}}">Back to Restaurants</a>
+          </div>
+      </div>
+  </div>
+  <!-- Create new item -->
+  <form id="create-new-form" method="post" action="{{ url_for('new_menu_item', restaurant_id=restaurant.id) }}"
+        class="form-horizontal" style="display: none;">
+      <div class="form-group">
+          <label class="col-xs-3 control-label">Name: </label>
+          <div class="col-xs-5">
+              <input type="text" class="form-control" name="name" required />
+          </div>
+      </div>
+      <div class="form-group">
+          <label class="col-xs-3 control-label">Description: </label>
+          <div class="col-xs-9">
+              <input type="text" class="form-control" name="desc"/>
+          </div>
+      </div>
+      <div class="form-group">
+          <label class="col-xs-3 control-label">Course: </label>
+          <div class="col-xs-6">
+              <input type="text" class="form-control" name="course" />
+          </div>
+      </div>
+      <div class="form-group">
+          <label class="col-xs-3 control-label">Price: </label>
+          <div class="col-xs-3">
+              <input type="text" class="form-control" name="price" />
+          </div>
+      </div>
+      <div class="form-group">
+          <div class="col-xs-3 col-xs-offset-9">
+              <button type="submit" class="btn btn-default">Create</button>
+          </div>
+      </div>
+  </form>
+  <!-- Edit menu item -->
+  <form id="edit-menu-form" method="post" action="{{ url_for('edit_menu_item', restaurant_id=restaurant.id) }}"
+        class="form-horizontal" style="display: none;">
+      <div class="form-group">
+          <label class="col-xs-3 control-label">Name</label>
+          <div class="col-xs-5">
+              <input type="text" class="form-control" name="name"/>
+          </div>
+          <input type="text" style="display: none;" name="menu_id" />
+          <input type="text" style="display: none;" name="restaurant_id"/>
+      </div>
+      <div class="form-group">
+          <div class="col-xs-3 col-xs-offset-9">
+              <button type="submit" class="btn btn-default">Update</button>
+          </div>
+      </div>
+  </form>
+
+  <form id="delete-menu-form" method="post" action="{{ url_for('delete_menu_item', restaurant_id=restaurant.id) }}"
+        class="form-horizontal" style="display: none;">
+      <div class="form-group">
+        Are you sure you want to delete this item?
+      </div>
+      <div class="form-group">
+          <div class="col-xs-3 col-xs-offset-9">
+              <button type="submit" class="btn btn-default">Update</button>
+          </div>
+      </div>
+  </form>
+
+  <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="{{ url_for('static', filename='js/bootstrap.js') }}"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.4.0/bootbox.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.js"></script>
+
+
+  <script>
+      $(document).ready(function () {
+          $('.edit-button').click(function () {
+              var menu_id = $(this).attr('data-menu-id');
+              var restaurant_id = $(this).attr('data-restaurant-id');
+
+              $.ajax({
+                  url: './' + menu_id + '/json/',
+                  method: 'GET'
+              }).success(function (response) {
+                 $('#edit-menu-form')
+                         .find('[name="name"]').val(response.MenuItem.name).end()
+                         .find('[name="menu_id"]').val(response.MenuItem.id).end()
+                         .find('[name="restaurant_id"]').val(response.MenuItem.restaurant_id).end();
+
+                  bootbox.dialog({
+                      title: "Edit Menu Item",
+                      message: $('#edit-menu-form'),
+                      show: true,
+                  }).on('shown.bs.modal', function () {
+                      $('#edit-menu-form')
+                              .show() // Show the form
+                  }).on('hide.bs.modal', function (e) {
+                        // Bootbox will remove the modal (including the body which contains the login form)
+                        // after hiding the modal
+                        // Therefor, we need to backup the form
+                      $('#edit-menu-form').hide().appendTo('body');
+                    })
+                    .modal('show');
+              });
+          });
+
+          $('delete-menu-form').click(function () {
+              var menu_id =
+              bootbox.dialog({
+                  title: "Delete confirmation",
+                  message: $('#delete-menu-form'),
+                  show: true,
+
+              }).on('shown.bs.modal', function () {
+                      $('#edit-menu-form')
+                              .show() // Show the form
+              }).on('hide.bs.modal', function (e) {
+                        // Bootbox will remove the modal (including the body which contains the login form)
+                        // after hiding the modal
+                        // Therefor, we need to backup the form
+                      $('#edit-menu-form').hide().appendTo('body');
+                    }).modal('show');
+          });
+
+          $('#add-new-item').click(function () {
+              var restaurant_id = $(this).attr('data-restaurant-id');
+              bootbox.dialog({
+                  title: "Add New Menu Item",
+                  message: $('#create-new-form'),
+                  show: true,
+              }).on('shown.bs.modal', function () {
+                  $('#create-new-form').show()
+              }).on('hide.bs.modal', function () {
+                  $('#create-new-form').hide().appendTo('body');
+              })
+                      .modal('show');
+          });
+
+      });
+  </script>
+  </body>
+</html>
