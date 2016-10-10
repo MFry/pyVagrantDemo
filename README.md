@@ -3,7 +3,9 @@ Vagrant box used for tutorials and demos found at https://medium.com/@michal.fry
 
 
 ## Quick Start
-If you setup the provisions for the vagrant VM very few steps are needed to get up and running.
+[Get started with vagrant](https://www.vagrantup.com/docs/getting-started/).
+
+If your box is already setup:
 Within the project's vagrant folder:
 ```
 vagrant up
